@@ -1,56 +1,36 @@
-﻿@model ProductViewsModel
+﻿@model IEnumerable<Product>
 
-<h2>Nathan's Products</h2><br />
-<br />
-<button><a asp-action="NewProduct" asp-controller="Product">Create A New Product!</a></button>
-<table class="table table-bordered">
+<h2>Products</h2>
+
+<div style="display: block">
+    <a href="/Product/InsertProduct/">Create a New Product</a>
+</div>
+
+<table class="table">
     <tr>
-        <th>Product ID</th>
+        <th>ID</th>
         <th>Name</th>
         <th>Price</th>
         <th>Category ID</th>
         <th>On Sale</th>
         <th>Stock Level</th>
-        <th>Delete</th>
-        <th>Update</th>
     </tr>
-    @{
-        for (int i = 0; i < ProductViewsModel.Products.Count; i++)
-        {
-            <tr>
-                <td>@ProductViewsModel.Products[i].ProductID</td>
-                <td>@ProductViewsModel.Products[i].Name</td>
-                <td>@ProductViewsModel.Products[i].Price</td>
-                <td>@ProductViewsModel.Products[i].CategoryID</td>
-                <td>@ProductViewsModel.Products[i].OnSale</td>
-                <td>@ProductViewsModel.Products[i].StockLevel</td>
-                <td>
-                    <form asp-action="DeleteProduct" asp-controller="Product">
-                        <input type="hidden" name="idToDelete" value="@ProductViewsModel.Products[i].ProductID" />
-                        <input class="btn btn-default" type="button" onclick="confirmDelete(this.form, '@ProductViewsModel.Products[i].ProductID')" value="Delete" />
-                    </form>
-                </td>
-                <td>
-                    <form asp-action="UpdatePage" asp-controller="Product">
-                        <input type="hidden" name="ProductID" value="@ProductViewsModel.Products[i].ProductID" />
-                        <input type="hidden" name="Name" value="@ProductViewsModel.Products[i].Name" />
-                        <input type="hidden" name="Price" value="@ProductViewsModel.Products[i].Price" />
-                        <input type="hidden" name="CategoryID" value="@ProductViewsModel.Products[i].CategoryID" />
-                        <input type="hidden" name="OnSale" value="@ProductViewsModel.Products[i].OnSale" />
-                        <input type="hidden" name="StockLevel" value="@ProductViewsModel.Products[i].StockLevel" />
-                        <input class="btn btn-default" type="submit" value="Update" />
-                    </form>
-                </td>
-            </tr>
-        }
+    
+    @foreach (var product in Model)
+    {
+     <tr>
+         <td><a href=/Product/ViewProduct/@product.ProductID>@product.ProductID</a></td>
+         <td>@product.Name</td>
+         <td>@product.Price</td>
+         <td>@product.CategoryID</td>
+         <td>@product.OnSale</td>
+         <td>@product.StockLevel</td>
+     </tr>
     }
 </table>
 
-<script>
-    function confirmDelete(form, name) {
-        if (confirm('Delete' + name + '?')) {
-            form.submit();
-        }
-    }
-</script>
+<div style="display: block">
+    <a href="/Product/InsertProduct/">Create a New Product</a>
+</div>
+
 

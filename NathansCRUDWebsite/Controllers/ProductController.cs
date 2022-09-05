@@ -6,44 +6,65 @@ namespace NathansCRUDWebsite.Controllers
 {
     public class ProductController : Controller
     {
+        private readonly IProductRepository repo;
+        public ProductController(IProductRepository repo)
+        {
+            this.repo = repo;
+        }
         public IActionResult Index()
         {
-            ProductRepo repo = new ProductRepo();
-            ProductViewsModel.Products = repo.GetProducts();
-            return View();
+            var products = repo.GetAllProducts();
+            return View(products);
         }
 
-        public IActionResult UpdatePage(Product p)
+        public IActionResult ViewProduct(int id)
         {
-            ProductViewsModel pvm = new ProductViewsModel();
-            pvm.ProductUpdate = p;
-            return View(pvm);
+            var product = repo.GetProduct(id);
+
+            return View(product);
         }
 
-        public IActionResult NewProduct()
+        public IActionResult DeleteProduct(Product product)
         {
-            return View();
-        }
+            repo.DeleteProduct(product);
 
-        public IActionResult CreateProduct(Product p)
-        {
-            ProductRepo repo = new ProductRepo();
-            repo.CreateProducts(p);
             return RedirectToAction("Index");
         }
 
-        public IActionResult DeleteProduct(int idToDelete)
+        public IActionResult UpdateProduct(int id)
         {
-            ProductRepo repo = new ProductRepo();
-            repo.DeleteProduct(idToDelete);
+            Product prod = repo.GetProduct(id);
+
+            if (prod == null)
+            {
+                return View("ProductNotFound");
+            }
+
+            return View(prod);
+
+        }
+        public IActionResult UpdateProductToDatabase(Product product)
+        {
+            repo.UpdateProduct(product);
+
+            return RedirectToAction("ViewProduct", new { id = product.ProductID });
+        }
+
+        public IActionResult InsertProduct()
+        {
+            var prod = repo.AssignCategory();
+
+            return View(prod);
+        }
+
+        public IActionResult InsertProductToDatabase(Product productToInsert)
+        {
+            repo.InsertProduct(productToInsert);
+
             return RedirectToAction("Index");
         }
 
-        public IActionResult UpdateProduct(Product p)
-        {
-            ProductRepo repo = new ProductRepo();
-            repo.UpdateProduct(p);
-            return RedirectToAction("Index");
-        }
+
+
     }
 }

@@ -8,6 +8,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using System.Data;
+using System.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace NathansCRUDWebsite
 {
@@ -15,18 +19,14 @@ namespace NathansCRUDWebsite
     {
         public static void Main(string[] args)
         {
-            string connectionKey = File.ReadAllText("appsettings.json");
-            JObject jsonObject = JObject.Parse(connectionKey);
-            JToken token = jsonObject["DefaultConnection"];
-            string connString = token.ToString();
-            ProductRepo.connectionString = connString;
-            
+            var app = CreateHostBuilder(args);
 
-            CreateHostBuilder(args).Build().Run();
+            app.Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+           
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

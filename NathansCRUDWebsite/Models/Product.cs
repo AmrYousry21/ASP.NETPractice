@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace NathansCRUDWebsite.Models
 {
     public class Product
@@ -9,5 +11,7 @@ namespace NathansCRUDWebsite.Models
         public int? CategoryID { get; set; }
         public int? OnSale { get; set; }
         public int? StockLevel { get; set; }
+        
+        public IEnumerable<Category> Categories { get; set; }
     }
 }

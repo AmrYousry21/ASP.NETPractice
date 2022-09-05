@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MySql.Data.MySqlClient;
 
 namespace NathansCRUDWebsite
 {
@@ -23,6 +24,8 @@ namespace NathansCRUDWebsite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IProductRepository, ProductRepo>();
+            services.AddTransient<MySqlConnection>(_ => new MySqlConnection(Configuration.GetConnectionString("bestbuy")));
             services.AddControllersWithViews();
         }
 
@@ -50,7 +53,7 @@ namespace NathansCRUDWebsite
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Product}/{action=Index}/{id?}");
             });
         }
     }

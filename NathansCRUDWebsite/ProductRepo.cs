@@ -2,21 +2,31 @@
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 using NathansCRUDWebsite.Models;
-using MySql.Data.MySqlClient;
+using System.Data;
+using Dapper;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.Configuration;
 
 namespace NathansCRUDWebsite
 {
-    public class ProductRepo
+    public class ProductRepo : IProductRepository
     {
-        public static string connectionString;
+        private readonly IConfiguration _configuration;
+        private readonly MySqlConnection _conn;
 
-        public List<Product> GetProducts()
+        public ProductRepo(IConfiguration configuration, MySqlConnection conn)
         {
-            MySqlConnection conn = new MySqlConnection(connectionString);
-            using (conn)
+            _configuration = configuration;
+            _conn = conn;
+        }
+
+        public IEnumerable<Product> GetAllProducts()
+        {
+            
+            using (_conn)
             {
-                conn.Open();
-                MySqlCommand cmd = conn.CreateCommand();
+                _conn.Open();
+                MySqlCommand cmd = _conn.CreateCommand();
                 cmd.CommandText = "SELECT ProductID, Name, Price, CategoryID, OnSale, StockLevel FROM products;";
 
                 MySqlDataReader reader = cmd.ExecuteReader();
@@ -70,14 +80,21 @@ namespace NathansCRUDWebsite
             }
         }
 
+        public Product GetProduct(int id) 
+        {
+            return _conn.QuerySingle<Product>("SELECT * FROM PRODUCTS WHERE PRODUCTID = @id",
+                new { id = id });
+        }
+
+
         public void CreateProducts(Product p)
         {
-            MySqlConnection conn = new MySqlConnection(connectionString);
-            using (conn)
+            
+            using (_conn)
             {
-                conn.Open();
+                _conn.Open();
 
-                MySqlCommand cmd = conn.CreateCommand();
+                MySqlCommand cmd = _conn.CreateCommand();
                 cmd.CommandText = "INSERT INTO products(Name, Price, CategoryID, OnSale, StockLevel) VALUES(@name, @price, @catid, @sale, @stock);";
                 cmd.Parameters.AddWithValue("name", p.Name);
                 cmd.Parameters.AddWithValue("price", p.Price);
@@ -88,38 +105,45 @@ namespace NathansCRUDWebsite
             }
         }
 
-        public void UpdateProduct(Product p)
+        public void UpdateProduct(Product product)
         {
-            MySqlConnection conn = new MySqlConnection(connectionString);
-            using (conn)
+            
+            using (_conn)
             {
-                conn.Open();
-
-                MySqlCommand cmd = conn.CreateCommand();
-                cmd.CommandText = "UPDATE products SET Name=@name, Price=@price, CategoryID=@catid, StockLevel=@stock, OnSale=@sale" +
-                    " WHERE ProductID=@id;";
-                cmd.Parameters.AddWithValue("name", p.Name);
-                cmd.Parameters.AddWithValue("price", p.Price);
-                cmd.Parameters.AddWithValue("catid", p.CategoryID);
-                cmd.Parameters.AddWithValue("stock", p.StockLevel);
-                cmd.Parameters.AddWithValue("sale", p.OnSale);
-                cmd.Parameters.AddWithValue("id", p.ProductID);
-                cmd.ExecuteNonQuery();
+                _conn.Execute("UPDATE products SET Name = @name, Price = @price WHERE ProductID = @id",
+                 new { name = product.Name, price = product.Price, id = product.ProductID });
             }
         }
 
-        public void DeleteProduct(int id)
+        public void DeleteProduct(Product product)
         {
-            MySqlConnection conn = new MySqlConnection(connectionString);
-            using (conn)
-            {
-                conn.Open();
+            _conn.Execute("DELETE FROM REVIEWS WHERE ProductID = @id;",
+                                       new { id = product.ProductID });
+            _conn.Execute("DELETE FROM Sales WHERE ProductID = @id;",
+                                       new { id = product.ProductID });
+            _conn.Execute("DELETE FROM Products WHERE ProductID = @id;",
+                                       new { id = product.ProductID });
+        }
 
-                MySqlCommand cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM products WHERE ProductID=@id;";
-                cmd.Parameters.AddWithValue("id", id);
-                cmd.ExecuteNonQuery();
-            }
+
+        public void InsertProduct(Product productToInsert)
+        {
+            _conn.Execute("INSERT INTO products (NAME, PRICE, CATEGORYID) VALUES (@name, @price, @categoryID);",
+                new { name = productToInsert.Name, price = productToInsert.Price, categoryID = productToInsert.CategoryID });
+        }
+
+        public IEnumerable<Category> GetCategories()
+        {
+            return _conn.Query<Category>("SELECT * FROM categories;");
+        }
+
+        public Product AssignCategory()
+        {
+            var categoryList = GetCategories();
+            var product = new Product();
+            product.Categories = categoryList;
+
+            return product;
         }
     }
 }
